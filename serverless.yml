@@ -54,7 +54,7 @@ functions:
             - prefix: json/
             - suffix: .json
     environment:
-#       # TABLE: "${self:custom.dynamoDBTableName}"
+      TABLE: "${self:custom.dynamoDBTableName}"
 
 resources:
   Resources:

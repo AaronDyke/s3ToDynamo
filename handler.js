@@ -2,8 +2,13 @@
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 
+const TABLE = process.env.TABLE || '';
+
 module.exports.s3ToDynamo = async (event) => {
   // console.log('event is', JSON.stringify(event));
+  if(!TABLE) {
+    throw "DynamoDB table environment variable not configured";
+  }
 
   const Bucket = event.Records[0].s3.bucket.name;
   const Key = event.Records[0].s3.object.key;
@@ -12,7 +17,7 @@ module.exports.s3ToDynamo = async (event) => {
   let rawText = data.Body.toString("ascii");
 
   let parsedData = parseData(Key, rawText);
-
+  let dynamoDbBatchWriteParams = createDynamoDbBatchWrites(parsedData);
   return { message: 'Successfully uploaded to dynamo' };
 };
 
@@ -54,4 +59,40 @@ function csvToJson(rawCsvText) {
   }
 
   return csvAsJson;
+}
+
+function createDynamoDbBatchWrites(objects){
+  let requestItems = objects.map(object => {
+    let keys = createDynamoDbKeys(object);
+    return {
+      PutRequest: {
+        ...keys,
+        ...object
+      }
+    }
+  })
+  
+  // chunk into size 25 to fit dynamodb requirements for batchWrite 
+  let chunkedRequests = chunkArray(requestItems, 25);
+
+  // creating array of dynamodb batchWrite params
+  let params = chunkedRequests.map(chunkedRequest => {
+    let RequestItems = {};
+    RequestItems[TABLE] = chunkedRequest;
+    return { RequestItems }
+  })
+
+  return params;
+}
+
+function chunkArray(array, chunkSize) {
+  let arrayOfChunks = [];
+  for (let i=0; i<array.length; i+=chunkSize){
+    arrayOfChunks.push(array.slice(i,i+chunkSize));
+  }
+  return arrayOfChunks;
+}
+
+function createDynamoDbKeys(object) {
+  return { 'PK': object['id'], 'SK': object['email']};
 }
