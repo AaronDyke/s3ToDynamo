@@ -12,12 +12,12 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - s3:*
-      Resource: "*"
+        - s3:GetObject
+      Resource: "arn:asw:s3:::${self:custom.bucketName}"
     - Effect: Allow
       Action:
         - dynamodb:BatchWriteItem
-      Resource: "*"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.dynamoDBTableName}"
 
 functions:
   s3ToDynamo:
