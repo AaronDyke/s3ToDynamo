@@ -1,0 +1,38 @@
+{
+    "Records": [
+        {
+            "eventVersion": "2.1",
+            "eventSource": "aws:s3",
+            "awsRegion": "us-east-1",
+            "eventTime": "2020-08-09T17:57:55.986Z",
+            "eventName": "ObjectCreated:Put",
+            "userIdentity": {
+                "principalId": "A2I4QJG9DOT9RY"
+            },
+            "requestParameters": {
+                "sourceIPAddress": "69.251.251.91"
+            },
+            "responseElements": {
+                "x-amz-request-id": "5BDBD75C7AB0EAD6",
+                "x-amz-id-2": "/JxuhGjRc0zRFAPkIrKQMsSLwXb118db/OqhOPI17e8Rwqff874x4C1YX1rapXaDUNH2HA7D4I405Xj/z1yaQ2R7b/dgyP2D"
+            },
+            "s3": {
+                "s3SchemaVersion": "1.0",
+                "configurationId": "18d05df3-af75-4e4e-9e9d-678e1d5e1de6",
+                "bucket": {
+                    "name": "aarondyke-s3todynamo-bucket",
+                    "ownerIdentity": {
+                        "principalId": "A2I4QJG9DOT9RY"
+                    },
+                    "arn": "arn:aws:s3:::aarondyke-s3todynamo-bucket"
+                },
+                "object": {
+                    "key": "csv/MOCK_DATA.csv",
+                    "size": 79703,
+                    "eTag": "e7a937759c863541841a6478e9647093",
+                    "sequencer": "005F30392822FE2870"
+                }
+            }
+        }
+    ]
+}
