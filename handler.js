@@ -3,11 +3,10 @@ const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 const dynamo = new AWS.DynamoDB.DocumentClient();
 
-const TABLE = process.env.TABLE || '';
+const TABLE = process.env.TABLE || "";
 
 module.exports.s3ToDynamo = async (event) => {
-  // console.log('event is', JSON.stringify(event));
-  if(!TABLE) {
+  if (!TABLE) {
     throw "DynamoDB table environment variable not configured";
   }
 
@@ -18,15 +17,15 @@ module.exports.s3ToDynamo = async (event) => {
   let rawText = data.Body.toString("ascii");
 
   let parsedData = parseData(Key, rawText);
-  let dynamoDbBatchWriteParams = createDynamoDbBatchWrites(parsedData);
+  let dynamoDbBatchWriteParams = createDynamoDbBatchWrites(Key, parsedData);
 
   let allBatchWritePromises = dynamoDbBatchWriteParams.map(batchWriteParams => {
     return dynamo.batchWrite(batchWriteParams).promise();
-  })
-  
+  });
+
   await Promise.all(allBatchWritePromises);
 
-  return { message: 'Successfully uploaded to dynamo' };
+  return { message: "Successfully uploaded to dynamo" };
 };
 
 /**
@@ -37,8 +36,6 @@ function parseData(key, rawText) {
   if (key.endsWith(".csv")) {
     console.log("Csv file detected");
     parsedData = csvToJson(rawText);
-    // let lines = rawText.split('\n');
-    // parsedData = lines.map(line => { return line.split(',') });
   } else if (key.endsWith(".json")) {
     console.log("Json file detected");
     parsedData = JSON.parse(rawText);
@@ -69,40 +66,46 @@ function csvToJson(rawCsvText) {
   return csvAsJson;
 }
 
-function createDynamoDbBatchWrites(objects){
+function createDynamoDbBatchWrites(key, objects) {
   let requestItems = objects.map(object => {
-    let keys = createDynamoDbKeys(object);
+    let keys = createDynamoDbKeys(key, object);
     return {
       PutRequest: {
-        Item: { 
-        ...keys,
-        ...object
-        }
-      }
-    }
-  })
-  
-  // chunk into size 25 to fit dynamodb requirements for batchWrite 
+        Item: {
+          ...keys,
+          ...object,
+        },
+      },
+    };
+  });
+
+  // chunk into size 25 to fit dynamodb requirements for batchWrite
   let chunkedRequests = chunkArray(requestItems, 25);
 
   // creating array of dynamodb batchWrite params
   let params = chunkedRequests.map(chunkedRequest => {
     let RequestItems = {};
     RequestItems[TABLE] = chunkedRequest;
-    return { RequestItems }
-  })
+    return { RequestItems };
+  });
 
   return params;
 }
 
 function chunkArray(array, chunkSize) {
   let arrayOfChunks = [];
-  for (let i=0; i<array.length; i+=chunkSize){
-    arrayOfChunks.push(array.slice(i,i+chunkSize));
+  for (let i = 0; i < array.length; i += chunkSize) {
+    arrayOfChunks.push(array.slice(i, i + chunkSize));
   }
   return arrayOfChunks;
 }
 
-function createDynamoDbKeys(object) {
-  return { 'PK': object['id'], 'SK': object['email']};
+function createDynamoDbKeys(key, object) {
+  if (key.startsWith("clients")) {
+    return { PK: `CLIENT#${object["id"]}`, SK: `PROFILE#${object["id"]}` };
+  } else if (key.startsWith("calls")) {
+    return { PK: `CLIENT#${object["client_id"]}`, SK: `CALL#${object["call_id"]}` };
+  } else {
+    throw "Uploaded to unknown folder";
+  }
 }

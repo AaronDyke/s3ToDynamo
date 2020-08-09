@@ -19,19 +19,6 @@ provider:
         - dynamodb:BatchWriteItem
       Resource: "*"
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
 functions:
   s3ToDynamo:
     handler: handler.s3ToDynamo
@@ -40,13 +27,25 @@ functions:
           bucket: ${self:custom.bucketName}
           event: s3:ObjectCreated:*
           rules:
-            - prefix: csv/
+            - prefix: calls/
             - suffix: .csv
       - s3:
           bucket: ${self:custom.bucketName}
           event: s3:ObjectCreated:*
           rules:
-            - prefix: json/
+            - prefix: calls/
+            - suffix: .json
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: clients/
+            - suffix: .csv
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: clients/
             - suffix: .json
     environment:
       TABLE: "${self:custom.dynamoDBTableName}"
