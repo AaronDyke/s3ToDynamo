@@ -1,6 +1,7 @@
 "use strict";
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
+const dynamo = new AWS.DynamoDB.DocumentClient();
 
 const TABLE = process.env.TABLE || '';
 
@@ -18,6 +19,13 @@ module.exports.s3ToDynamo = async (event) => {
 
   let parsedData = parseData(Key, rawText);
   let dynamoDbBatchWriteParams = createDynamoDbBatchWrites(parsedData);
+
+  let allBatchWritePromises = dynamoDbBatchWriteParams.map(batchWriteParams => {
+    return dynamo.batchWrite(batchWriteParams).promise();
+  })
+  
+  await Promise.all(allBatchWritePromises);
+
   return { message: 'Successfully uploaded to dynamo' };
 };
 
@@ -66,8 +74,10 @@ function createDynamoDbBatchWrites(objects){
     let keys = createDynamoDbKeys(object);
     return {
       PutRequest: {
+        Item: { 
         ...keys,
         ...object
+        }
       }
     }
   })
