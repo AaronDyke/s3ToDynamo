@@ -13,7 +13,9 @@ provider:
     - Effect: Allow
       Action:
         - s3:GetObject
-      Resource: "arn:asw:s3:::${self:custom.bucketName}"
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucketName}"
+        - "arn:aws:s3:::${self:custom.bucketName}/*"
     - Effect: Allow
       Action:
         - dynamodb:BatchWriteItem
