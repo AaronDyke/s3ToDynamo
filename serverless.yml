@@ -1,8 +1,8 @@
 service: s3todynamo
 
 custom:
-  bucketName: aarondyke-${self:service}-bucket
-  dynamoDBTableName: aarondyke-${self:service}
+  bucketName: aaron-dyke-car-questions-${self:service}-bucket
+  dynamoDBTableName: car-questions-${self:service}
 
 provider:
   name: aws
