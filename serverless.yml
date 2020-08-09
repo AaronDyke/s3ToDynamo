@@ -1,7 +1,7 @@
 service: s3todynamo
 
 custom:
-  bucketName: aaron-dyke-car-questions-${self:service}-bucket
+  bucketName: car-questions-${self:service}-bucket
   dynamoDBTableName: car-questions-${self:service}
 
 provider:
